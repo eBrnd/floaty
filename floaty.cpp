@@ -17,27 +17,41 @@ class DecimalNumber {
     bool negative;
 
     static const unsigned INITIAL_POSITION = 40;
+    static const unsigned LENGTH = 100; // TODO make appropriate
 
-    void round(const unsigned destIndex) {
+
+    void round(unsigned destIndex) {
       char carry = 0;
-      unsigned i = LENGTH;
-      while (i > destIndex) {
-        digits[i] += carry;
-        carry = (digits[i] >= 5) ? 1 : 0;
-        digits[i] = 0;
-        i--;
+
+      if (digits[destIndex + 1] >= 5) {
+        digits[destIndex]++;
+        if (digits[destIndex] >= 10) {
+          digits[destIndex] -= 10;
+          carry = 1;
+        } else {
+          carry = 0;
+        }
       }
 
-      while (carry && i > 0) {
-        digits[i] += carry;
-        carry = digits[i] >= 10;
-        i--;
+      // zero the rest of the vector
+      digits.resize(destIndex + 1);
+      digits.resize(LENGTH);
+      destIndex--;
+
+      while (carry && destIndex > 0) {
+        digits[destIndex] += carry;
+        carry = digits[destIndex] >= 10;
+        if (digits[destIndex] >= 10) {
+          carry = 1;
+          digits[destIndex] -= 10;
+        } else {
+          carry = 0;
+        }
+        destIndex--;
       }
     }
 
   public:
-    static const unsigned LENGTH = 100; // TODO make appropriate
-
     DecimalNumber() : digits(LENGTH), negative(false) {
       digits[0] = 1;
     }
@@ -194,7 +208,7 @@ class DecimalNumber {
 
     DecimalNumber& round(const int digits) {
       const unsigned digit_index = INITIAL_POSITION + digits;
-      if (digit_index > LENGTH) // TODO decide if we even have to catch this or just do nothing if the number's too big/small
+      if (digit_index > LENGTH - 1) // TODO decide if we even have to catch this or just do nothing if the number's too big/small
         throw runtime_error("Not enough digits to round");
       round(static_cast<unsigned>(digit_index));
 
@@ -223,4 +237,5 @@ int main(int argc, char** args) {
   bernd::DecimalNumber d(0.112233);
   std::cout << "rounded: " << d.round(7).format(10) << std::endl;
   std::cout << bernd::DecimalNumber(0.9999999999f).round(2).format() << std::endl;
+  std::cout << bernd::DecimalNumber(0.444444444444445).format() << std::endl;
 }
