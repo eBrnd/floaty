@@ -49,6 +49,9 @@ class DecimalNumber {
         }
         destIndex--;
       }
+
+      if (destIndex == 0 && carry)
+        throw runtime_error("overflow on rounding"); // TODO well we don't really need this later when we made sure we have enough digits.
     }
 
   public:
@@ -238,4 +241,5 @@ int main(int argc, char** args) {
   std::cout << "rounded: " << d.round(7).format(10) << std::endl;
   std::cout << bernd::DecimalNumber(0.9999999999f).round(2).format() << std::endl;
   std::cout << bernd::DecimalNumber(0.444444444444445).format() << std::endl;
+  std::cout << bernd::DecimalNumber(999999999999).round(-3).format() << std::endl;
 }
