@@ -11,12 +11,12 @@ using std::signbit;
 using std::string;
 using std::vector;
 
-static const unsigned INITIAL_POSITION = 40; // TODO put this somewhere inside!
-
 class DecimalNumber {
   private:
     vector<char> digits;
     bool negative;
+
+    static const unsigned INITIAL_POSITION = 40;
 
   public:
     static const unsigned LENGTH = 100; // TODO make appropriate
