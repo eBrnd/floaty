@@ -16,9 +16,11 @@ class DecimalNumber {
   private:
     vector<char> digits;
     bool negative;
+    bool inf;
+    bool nan;
 
     static const unsigned INITIAL_POSITION = 40;
-    static const unsigned LENGTH = 242; // TODO make appropriate
+    static const unsigned LENGTH = 92; // TODO make appropriate
 
 
     void round(unsigned destIndex) {
@@ -56,17 +58,20 @@ class DecimalNumber {
     }
 
   public:
-    DecimalNumber() : digits(LENGTH), negative(false) {
+    DecimalNumber() : digits(LENGTH), negative(false), inf(false), nan(false) {
       digits[0] = 1;
     }
 
-    DecimalNumber(const std::vector<char>& d, bool negative = false) {
+    DecimalNumber(const std::vector<char>& d, bool negative = false, bool inf = false,
+        bool nan = false) {
       if (d.size() == LENGTH) {
         digits = d;
       } else {
         throw runtime_error("Vector must have correct length");
       }
       this->negative = negative;
+      this->inf = inf;
+      this->nan = nan;
     }
 
     void setNegative(bool n) { negative = n; }
@@ -107,27 +112,19 @@ class DecimalNumber {
     }
 
     friend std::ostream& operator<<(std::ostream& str, const DecimalNumber& n) {
+      if (n.nan) {
+        str << "nan";
+        return str;
+      }
       if (n.negative) str << "-";
+      if (n.inf) {
+        str << "inf";
+        return str;
+      }
       for (vector<char>::const_iterator it = n.digits.begin(); it != n.digits.end(); ++it) {
         str << (char)(*it + '0');
       }
       return str;
-    }
-
-    friend DecimalNumber operator+(const DecimalNumber& a, const DecimalNumber& b) { vector<char> result(LENGTH);
-      char carry = 0;
-      for (int index = LENGTH; index >= 0; --index) {
-        char sumDigit = a.digits[index] + b.digits[index] + carry;
-        if (sumDigit < 10) {
-          result[index] = sumDigit;
-          carry = 0;
-        } else {
-          result[index] = sumDigit - 10;
-          carry = 1;
-        }
-      }
-
-      return DecimalNumber(result, a.negative); // just propagate the negative flag, that's enough for a+a.
     }
 
     DecimalNumber& operator+=(const DecimalNumber& o) {
@@ -147,6 +144,13 @@ class DecimalNumber {
     }
 
     std::string format(int decimals = 6) {
+      if (nan) return "nan";
+      string res(negative ? "-" : "");
+      if (inf) {
+        res += "inf";
+        return res;
+      }
+
       round(decimals); // TODO this changes our number. Is that okay?
       vector<char>::const_iterator d = digits.begin();
 
@@ -158,7 +162,6 @@ class DecimalNumber {
 
       int distance_from_decimal_point = d - digits.begin() - INITIAL_POSITION - 1;
 
-      string res(negative ? "-" : "");
       bool before_decimal_point = true;
       if (distance_from_decimal_point >= 0) { // print some leading zeros
         before_decimal_point = false;
@@ -188,6 +191,10 @@ class DecimalNumber {
     }
 
     DecimalNumber(const float f) : digits(LENGTH) {
+      if (nan = isnan(f)) return;
+      negative = (f < 0.f);
+      if (inf = isinf(f)) return;
+
       unsigned i = INITIAL_POSITION;
       int exp;
 
@@ -199,7 +206,6 @@ class DecimalNumber {
         s *= 10.f;
       }
 
-      negative = (f < 0.f);
       div2();div2();div2(); // compensate for prescaling
 
       if (exp > 0)
@@ -232,30 +238,16 @@ int main(int argc, char** args) {
   std::cout << f.format() << std::endl;
   std::cout << bernd::DecimalNumber(1.0).format() << std::endl;
   std::cout << bernd::DecimalNumber(0.0).format() << std::endl;
-  std::cout << bernd::DecimalNumber(100000.f).format() << std::endl;
-  std::cout << bernd::DecimalNumber(0.112233).format() << std::endl;
-  std::cout << bernd::DecimalNumber(0.000123456f).format() << std::endl;
-  std::cout << std::endl << std::endl;
-  std::cout << bernd::DecimalNumber(-1.0).format() << std::endl;
-  std::cout << bernd::DecimalNumber(-0.0).format() << std::endl;
-  std::cout << bernd::DecimalNumber(-100000.f).format() << std::endl;
   std::cout << bernd::DecimalNumber(-0.112233).format() << std::endl;
   std::cout << bernd::DecimalNumber(-0.000123456f).format() << std::endl;
-  bernd::DecimalNumber d(0.112233);
-  std::cout << "rounded: " << d.round(7).format(10) << std::endl;
-  std::cout << bernd::DecimalNumber(0.9999999999f).round(2).format() << std::endl;
-  std::cout << bernd::DecimalNumber(0.444444444444445).format() << std::endl;
-  std::cout << bernd::DecimalNumber(999999999999).round(-3).format() << std::endl;
 
-  std::cout << std::fixed << std::setprecision(200);
-  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::max()).format(200) << std::endl;
-  std::cout << std::numeric_limits<float>::max() << std::endl;
-  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::min()).format(200) << std::endl;
-  std::cout << std::numeric_limits<float>::min() << std::endl;
-  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::lowest()).format(200) << std::endl;
-  std::cout << std::numeric_limits<float>::lowest() << std::endl;
-  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::epsilon()).format(200) << std::endl;
-  std::cout << std::numeric_limits<float>::epsilon() << std::endl;
-  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::denorm_min()).format(200) << std::endl;
-  std::cout << std::numeric_limits<float>::denorm_min() << std::endl;
+  std::cout << std::endl;
+  std::cout << bernd::DecimalNumber(nanf("")).format() << std::endl;
+  std::cout << nanf("") << std::endl;
+  std::cout << std::endl;
+  std::cout << bernd::DecimalNumber(INFINITY).format() << std::endl;
+  std::cout << INFINITY << std::endl;
+  std::cout << std::endl;
+  std::cout << bernd::DecimalNumber(-INFINITY).format() << std::endl;
+  std::cout << -INFINITY << std::endl;
 }
