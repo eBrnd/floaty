@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -17,7 +18,7 @@ class DecimalNumber {
     bool negative;
 
     static const unsigned INITIAL_POSITION = 40;
-    static const unsigned LENGTH = 100; // TODO make appropriate
+    static const unsigned LENGTH = 242; // TODO make appropriate
 
 
     void round(unsigned destIndex) {
@@ -211,8 +212,11 @@ class DecimalNumber {
 
     DecimalNumber& round(const int digits) {
       const unsigned digit_index = INITIAL_POSITION + digits;
-      if (digit_index > LENGTH - 1) // TODO decide if we even have to catch this or just do nothing if the number's too big/small
+      if (digit_index == LENGTH - 1)
+        return *this;
+      else if (digit_index > LENGTH - 1) // TODO decide if we even have to catch this or just do nothing if the number's too big/small
         throw runtime_error("Not enough digits to round");
+
       round(static_cast<unsigned>(digit_index));
 
       return *this;
@@ -242,4 +246,16 @@ int main(int argc, char** args) {
   std::cout << bernd::DecimalNumber(0.9999999999f).round(2).format() << std::endl;
   std::cout << bernd::DecimalNumber(0.444444444444445).format() << std::endl;
   std::cout << bernd::DecimalNumber(999999999999).round(-3).format() << std::endl;
+
+  std::cout << std::fixed << std::setprecision(200);
+  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::max()).format(200) << std::endl;
+  std::cout << std::numeric_limits<float>::max() << std::endl;
+  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::min()).format(200) << std::endl;
+  std::cout << std::numeric_limits<float>::min() << std::endl;
+  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::lowest()).format(200) << std::endl;
+  std::cout << std::numeric_limits<float>::lowest() << std::endl;
+  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::epsilon()).format(200) << std::endl;
+  std::cout << std::numeric_limits<float>::epsilon() << std::endl;
+  std::cout << bernd::DecimalNumber(std::numeric_limits<float>::denorm_min()).format(200) << std::endl;
+  std::cout << std::numeric_limits<float>::denorm_min() << std::endl;
 }
