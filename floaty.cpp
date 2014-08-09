@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "base1gnumber.hpp"
+
 namespace bernd {
 
 using std::runtime_error;
@@ -129,7 +131,7 @@ class DecimalNumber {
 
     DecimalNumber& operator+=(const DecimalNumber& o) {
       char carry = 0;
-      for (int index = LENGTH; index >- 0; --index) {
+      for (int index = LENGTH - 1; index >= 0; --index) {
         char sumDigit = digits[index] + o.digits[index] + carry;
         if (sumDigit < 10) {
           digits[index] = sumDigit;
@@ -232,6 +234,7 @@ class DecimalNumber {
 }
 
 int main(int argc, char** args) {
+  /*
   bernd::DecimalNumber f(10.9876f);
   std::cout << f << std::endl;
   std::cout << "format" << std::endl;
@@ -250,4 +253,18 @@ int main(int argc, char** args) {
   std::cout << std::endl;
   std::cout << bernd::DecimalNumber(-INFINITY).format() << std::endl;
   std::cout << -INFINITY << std::endl;
+  */
+
+  std::vector<uint32_t> digits(bernd::Base1GNumber::LENGTH);
+  digits[6] = 23456;
+  digits[7] = 123456789;
+  digits[8] = 987654321;
+  bernd::Base1GNumber n(digits);
+  std::cout << n << std::endl;
+  n.div2();
+  std::cout << n << std::endl;
+  n += n;
+  std::cout << n << std::endl;
+
+  return 0;
 }
