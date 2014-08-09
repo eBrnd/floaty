@@ -42,6 +42,7 @@ class Base1GNumber {
     Base1GNumber(float f) : packedDigits(LENGTH) {
       if ((nan = isnan(f)) == true) return;
       if ((inf = isinf(f)) == true) return;
+      negative = f < 0.f;
 
       unsigned i = INITIAL_POSITION;
       int exp;
@@ -77,6 +78,18 @@ class Base1GNumber {
       }
 
       return *this;
+    }
+
+    uint32_t getDigit(unsigned index) const {
+      // split in packedDigit index and digit index
+      unsigned subIndex = 8 - index % 9;
+      index /= 9;
+
+      uint32_t packedDigit = packedDigits[index];
+      while (subIndex--)
+        packedDigit /= 10;
+
+      return packedDigit % 10;
     }
 
     Base1GNumber& operator+=(const Base1GNumber& o) {
