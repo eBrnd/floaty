@@ -65,8 +65,6 @@ class Base1GNumber {
           div2();
     }
 
-    void setNegative(bool n) { negative = n; }
-
     Base1GNumber& div2() {
       bool remainder = false;
       for (unsigned index = 0; index < LENGTH; index++) {
@@ -97,13 +95,8 @@ class Base1GNumber {
       unsigned subIndex = 8 - decimals % 9;
       int index = decimals / 9;
 
-      std::cout << "round(" << decimals << ")   subIndex: " << subIndex << "   index: " << index << std::endl;
-      std::cout << "      Digit there: " << getDigit(decimals);
-
       uint32_t& packedDigit = packedDigits[index];
       uint32_t carry = 0;
-
-      std::cout << "   packedDigit: " << packedDigit << std::endl;
 
       if (getDigit(decimals + 1) >= 5) {
         for (unsigned i = 0; i < subIndex; i++)
