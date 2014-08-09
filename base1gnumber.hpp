@@ -39,32 +39,6 @@ class Base1GNumber {
       this->nan = nan;
     }
 
-    Base1GNumber(float f) : packedDigits(LENGTH) {
-      if ((nan = isnan(f)) == true) return;
-      if ((inf = isinf(f)) == true) return;
-      negative = f < 0.f;
-
-      unsigned i = INITIAL_POSITION;
-      int exp;
-
-      float s = fabs(frexp(f, &exp)) * 8.f; // Pre-scale as to not lose siginficant bits on the first multiplication with 1000000000
-      while (s != 0.f && i < LENGTH) {
-        uint32_t integerPart = static_cast<uint32_t>(s);
-        packedDigits[i++] = integerPart;
-        s -= integerPart;
-        s *= 1000000000;
-      }
-
-      div2();div2();div2(); // compensate for prescaling
-
-      if (exp > 0)
-        while (exp--)
-          operator+=(*this);
-      else if (exp < 0)
-        while (exp++)
-          div2();
-    }
-
     Base1GNumber& div2() {
       bool remainder = false;
       for (unsigned index = 0; index < LENGTH; index++) {
