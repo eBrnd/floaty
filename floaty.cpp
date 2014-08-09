@@ -191,9 +191,9 @@ class DecimalNumber {
     }
 
     DecimalNumber(const float f) : digits(LENGTH) {
-      if (nan = isnan(f)) return;
+      if ((nan = isnan(f)) == true) return;
       negative = (f < 0.f);
-      if (inf = isinf(f)) return;
+      if ((inf = isinf(f)) == true) return;
 
       unsigned i = INITIAL_POSITION;
       int exp;
