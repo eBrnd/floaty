@@ -30,22 +30,17 @@ class Base1GNumber {
       packedDigits[INITIAL_POSITION] = 1;
     }
 
-    Base1GNumber(vector<digit_t> p, bool negative = false, bool inf = false, bool nan = false) {
+    Base1GNumber(vector<digit_t> p, bool negative = false, bool inf = false, bool nan = false)
+        : negative(negative), inf(inf), nan(nan) {
       if (p.size() == LENGTH) {
         packedDigits = p;
       } else {
         throw runtime_error("Vector must have correct length");
       }
-
-      this->negative = negative;
-      this->inf = inf;
-      this->nan = nan;
     }
 
-    Base1GNumber(float f) : packedDigits(LENGTH) {
-      if ((nan = isnan(f)) == true) return;
-      if ((inf = isinf(f)) == true) return;
-      negative = f < 0.f;
+    Base1GNumber(float f) : packedDigits(LENGTH), negative(f < 0.f), inf(isinf(f)), nan(isnan(f)) {
+      if (inf || nan) return;
 
       unsigned i = INITIAL_POSITION;
       int exp;
