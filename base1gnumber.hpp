@@ -1,13 +1,14 @@
 #ifndef BASE1GFLOAT_HPP_c9b25b3fcb
 #define BASE1GFLOAT_HPP_c9b25b3fcb
 
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 namespace bernd {
 
-using std::vector;
 using std::runtime_error;
+using std::string;
+using std::vector;
 
 class Base1GNumber {
   private:
@@ -19,10 +20,10 @@ class Base1GNumber {
     bool nan;
 
     static const unsigned INITIAL_POSITION = 4;
-    static const unsigned LENGTH = 12; // TODO make appropriate
     static const unsigned BASE = 1000000000;
 
   public:
+    static const unsigned LENGTH = 12; // TODO make appropriate
 
     Base1GNumber()
         : packedDigits(LENGTH), negative(false), inf(false), nan(false) {
@@ -151,6 +152,75 @@ class Base1GNumber {
       }
 
       return *this;
+    }
+
+    void fillDigitPackString(string& s, digit_t d) {
+      s.replace(0, 9, 9, '0');
+      int index = 9;
+      while (d && index) {
+        s[--index] = (d % 10) + '0';
+        d /= 10;
+      }
+    }
+
+    string format(int decimals = 6) {
+      if (nan) return "nan";
+      string res(negative ? "-" : "");
+      if (inf) {
+        res += "inf";
+        return res;
+      }
+
+      round(decimals); // TODO this changes our number (that's why format can't be const). That's probably not good, but otherwise we'd need a copy.
+
+      string d(9, '0');
+      for (vector<digit_t>::const_iterator digit_it = packedDigits.begin();
+          digit_it != packedDigits.end(); ++digit_it) {
+        fillDigitPackString(d, *digit_it);
+        res += d;
+        res += " ";
+      }
+
+      return res;
+
+      /*
+      vector<char>::const_iterator d = digits.begin();
+
+      // trim leading 0's
+      while (d != digits.end() && *d == 0) d++;
+
+      if (d == digits.end())
+        return "0." + string(decimals, '0');
+
+      int distance_from_decimal_point = d - digits.begin() - INITIAL_POSITION - 1;
+
+      bool before_decimal_point = true;
+      if (distance_from_decimal_point >= 0) { // print some leading zeros
+        before_decimal_point = false;
+        res += "0.";
+        while (distance_from_decimal_point) {
+          res.push_back('0');
+          distance_from_decimal_point--;
+          if (!decimals--) return res;
+        }
+      }
+
+      // now the funny part...
+      while (d != digits.end() && decimals) {
+        if (!before_decimal_point)
+          decimals--;
+
+        res.push_back(*d + '0');
+        if (d - digits.begin() == INITIAL_POSITION) {
+          res.push_back('.');
+          before_decimal_point = false;
+        }
+        d++;
+
+      }
+
+      return res;
+      */
     }
 
     friend std::ostream& operator<<(std::ostream& str, const Base1GNumber& n) {

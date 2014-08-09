@@ -153,7 +153,7 @@ class DecimalNumber {
         return res;
       }
 
-      round(decimals); // TODO this changes our number. Is that okay?
+      // round(decimals); // TODO this changes our number. Is that okay?
       vector<char>::const_iterator d = digits.begin();
 
       // trim leading 0's
@@ -269,8 +269,7 @@ int main(int argc, char** args) {
   std::cout << bernd::Base1GNumber(1234567890.f) << std::endl;
   std::cout << bernd::Base1GNumber(1.234567888f) << std::endl;
   std::cout << bernd::Base1GNumber(1.45).round(1) << std::endl;
-
-  std::cout << bernd::Base1GNumber() << std::endl;
+  std::cout << bernd::Base1GNumber(1.45).format() << std::endl;
 
   return 0;
 }
