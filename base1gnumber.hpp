@@ -11,23 +11,25 @@ using std::runtime_error;
 
 class Base1GNumber {
   private:
-    vector<uint32_t> packedDigits;
+    typedef uint32_t digit_t;
+    vector<digit_t> packedDigits;
 
     bool negative;
     bool inf;
     bool nan;
 
     static const unsigned INITIAL_POSITION = 4;
+    static const unsigned LENGTH = 12; // TODO make appropriate
+    static const unsigned BASE = 1000000000;
 
   public:
-    static const unsigned LENGTH = 12; // TODO make appropriate
 
     Base1GNumber()
         : packedDigits(LENGTH), negative(false), inf(false), nan(false) {
       packedDigits[INITIAL_POSITION] = 1;
     }
 
-    Base1GNumber(vector<uint32_t> p, bool negative = false, bool inf = false, bool nan = false) {
+    Base1GNumber(vector<digit_t> p, bool negative = false, bool inf = false, bool nan = false) {
       if (p.size() == LENGTH) {
         packedDigits = p;
       } else {
@@ -49,10 +51,10 @@ class Base1GNumber {
 
       float s = fabs(frexp(f, &exp)) * 8.f; // Pre-scale as to not lose siginficant bits on the first multiplication with 1000000000
       while (s != 0.f && i < LENGTH) {
-        uint32_t integerPart = static_cast<uint32_t>(s);
+        digit_t integerPart = static_cast<digit_t>(s);
         packedDigits[i++] = integerPart;
         s -= integerPart;
-        s *= 1000000000;
+        s *= BASE;
       }
 
       div2();div2();div2(); // compensate for prescaling
@@ -68,8 +70,8 @@ class Base1GNumber {
     Base1GNumber& div2() {
       bool remainder = false;
       for (unsigned index = 0; index < LENGTH; index++) {
-        uint32_t result = remainder ? 500000000 : 0;
-        uint32_t currentDigit = packedDigits[index];
+        digit_t result = remainder ? (BASE / 2) : 0;
+        digit_t currentDigit = packedDigits[index];
         remainder = currentDigit & 1;
         result += currentDigit >> 1;
         packedDigits[index] = result;
@@ -78,12 +80,12 @@ class Base1GNumber {
       return *this;
     }
 
-    uint32_t getDigit(unsigned index) const {
+    digit_t getDigit(unsigned index) const {
       // split in packedDigit index and digit index
       unsigned subIndex = 8 - index % 9;
       index /= 9;
 
-      uint32_t packedDigit = packedDigits[index];
+      digit_t packedDigit = packedDigits[index];
       while (subIndex--)
         packedDigit /= 10;
 
@@ -95,8 +97,8 @@ class Base1GNumber {
       unsigned subIndex = 8 - decimals % 9;
       int index = decimals / 9;
 
-      uint32_t& packedDigit = packedDigits[index];
-      uint32_t carry = 0;
+      digit_t& packedDigit = packedDigits[index];
+      digit_t carry = 0;
 
       if (getDigit(decimals + 1) >= 5) {
         for (unsigned i = 0; i < subIndex; i++)
@@ -107,16 +109,16 @@ class Base1GNumber {
         for (unsigned i = 0; i < subIndex; i++)
           packedDigit *= 10;
 
-        if (packedDigit >= 1000000000) {
+        if (packedDigit >= BASE) {
           carry = 1;
-          packedDigit -= 1000000000;
+          packedDigit -= BASE;
         }
 
         while (carry && index-- > 0) {
-          uint32_t& packedDigit = packedDigits[index];
-          if (packedDigit++ > 1000000000) {
+          digit_t& packedDigit = packedDigits[index];
+          if (packedDigit++ > BASE) {
             carry = 1;
-            packedDigit -= 1000000000;
+            packedDigit -= BASE;
           } else {
             carry = 0;
           }
@@ -136,14 +138,14 @@ class Base1GNumber {
     }
 
     Base1GNumber& operator+=(const Base1GNumber& o) {
-      uint32_t carry = 0;
+      digit_t carry = 0;
       for (int index = LENGTH - 1; index >= 0; index--) {
-        uint32_t sum = packedDigits[index] + o.packedDigits[index] + carry;
-        if (sum < 1000000000) {
+        digit_t sum = packedDigits[index] + o.packedDigits[index] + carry;
+        if (sum < BASE) {
           packedDigits[index] = sum;
           carry = 0;
         } else {
-          packedDigits[index] = sum - 1000000000;
+          packedDigits[index] = sum - BASE;
           carry = 1;
         }
       }
@@ -162,13 +164,14 @@ class Base1GNumber {
         return str;
       }
       str << std::endl;
-      for (vector<uint32_t>::const_iterator it = n.packedDigits.begin(); it != n.packedDigits.end();
+      for (vector<digit_t>::const_iterator it = n.packedDigits.begin(); it != n.packedDigits.end();
           ++it) {
         str << std::setfill('0') << std::setw(9) << *it << " ";
       }
 
       return str;
     }
+
 };
 
 }
