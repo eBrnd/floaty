@@ -267,6 +267,10 @@ int main(int argc, char** args) {
   std::cout << n << std::endl;
 
   std::cout << bernd::Base1GNumber(1234567890.f) << std::endl;
+  std::cout << bernd::Base1GNumber(1.234567888f) << std::endl;
+  std::cout << bernd::Base1GNumber(1.45).round(1) << std::endl;
+
+  std::cout << bernd::Base1GNumber() << std::endl;
 
   return 0;
 }

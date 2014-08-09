@@ -92,6 +92,56 @@ class Base1GNumber {
       return packedDigit % 10;
     }
 
+    Base1GNumber& round(int decimals) {
+      decimals += (INITIAL_POSITION + 1) * 9 - 1;
+      unsigned subIndex = 8 - decimals % 9;
+      int index = decimals / 9;
+
+      std::cout << "round(" << decimals << ")   subIndex: " << subIndex << "   index: " << index << std::endl;
+      std::cout << "      Digit there: " << getDigit(decimals);
+
+      uint32_t& packedDigit = packedDigits[index];
+      uint32_t carry = 0;
+
+      std::cout << "   packedDigit: " << packedDigit << std::endl;
+
+      if (getDigit(decimals + 1) >= 5) {
+        for (unsigned i = 0; i < subIndex; i++)
+          packedDigit /= 10;
+
+        packedDigit++;
+
+        for (unsigned i = 0; i < subIndex; i++)
+          packedDigit *= 10;
+
+        if (packedDigit >= 1000000000) {
+          carry = 1;
+          packedDigit -= 1000000000;
+        }
+
+        while (carry && index-- > 0) {
+          uint32_t& packedDigit = packedDigits[index];
+          if (packedDigit++ > 1000000000) {
+            carry = 1;
+            packedDigit -= 1000000000;
+          } else {
+            carry = 0;
+          }
+        }
+      } else {
+        for (unsigned i = 0; i < subIndex; i++)
+          packedDigit /= 10;
+        for (unsigned i = 0; i < subIndex; i++)
+          packedDigit *= 10;
+      }
+
+      // zero everythig to the right
+      packedDigits.resize(decimals / 9 + 1);
+      packedDigits.resize(LENGTH);
+
+      return *this;
+    }
+
     Base1GNumber& operator+=(const Base1GNumber& o) {
       uint32_t carry = 0;
       for (int index = LENGTH - 1; index >= 0; index--) {
