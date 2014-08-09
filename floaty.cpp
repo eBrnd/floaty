@@ -266,14 +266,11 @@ int main(int argc, char** args) {
   n += n;
   std::cout << n << std::endl;
 
-<<<<<<< HEAD
   std::cout << bernd::Base1GNumber(1234567890.f) << std::endl;
   std::cout << bernd::Base1GNumber(1.234567888f) << std::endl;
   std::cout << bernd::Base1GNumber(1.45).round(1) << std::endl;
 
   std::cout << bernd::Base1GNumber() << std::endl;
 
-=======
->>>>>>> 5726d1bec0989144b7a46b702dc26f37f897dd85
   return 0;
 }
