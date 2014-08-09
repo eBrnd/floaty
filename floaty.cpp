@@ -266,5 +266,7 @@ int main(int argc, char** args) {
   n += n;
   std::cout << n << std::endl;
 
+  std::cout << bernd::Base1GNumber(1234567890.f) << std::endl;
+
   return 0;
 }

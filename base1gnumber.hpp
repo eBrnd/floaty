@@ -39,6 +39,31 @@ class Base1GNumber {
       this->nan = nan;
     }
 
+    Base1GNumber(float f) : packedDigits(LENGTH) {
+      if ((nan = isnan(f)) == true) return;
+      if ((inf = isinf(f)) == true) return;
+
+      unsigned i = INITIAL_POSITION;
+      int exp;
+
+      float s = fabs(frexp(f, &exp)) * 8.f; // Pre-scale as to not lose siginficant bits on the first multiplication with 1000000000
+      while (s != 0.f && i < LENGTH) {
+        uint32_t integerPart = static_cast<uint32_t>(s);
+        packedDigits[i++] = integerPart;
+        s -= integerPart;
+        s *= 1000000000;
+      }
+
+      div2();div2();div2(); // compensate for prescaling
+
+      if (exp > 0)
+        while (exp--)
+          operator+=(*this);
+      else if (exp < 0)
+        while (exp++)
+          div2();
+    }
+
     void setNegative(bool n) { negative = n; }
 
     Base1GNumber& div2() {
@@ -55,22 +80,8 @@ class Base1GNumber {
     }
 
     Base1GNumber& operator+=(const Base1GNumber& o) {
-      /*char carry = 0;
-      for (int index = LENGTH; index >- 0; --index) {
-        char sumDigit = digits[index] + o.digits[index] + carry;
-        if (sumDigit < 10) {
-          digits[index] = sumDigit;
-          carry = 0;
-        } else {
-          digits[index] = sumDigit - 10;
-          carry = 1;
-        }
-      }
-
-      return *this;
-      */
-      uint32_t carry = false;
-      for (unsigned index = LENGTH - 1; index >= 0; index--) {
+      uint32_t carry = 0;
+      for (int index = LENGTH - 1; index >= 0; index--) {
         uint32_t sum = packedDigits[index] + o.packedDigits[index] + carry;
         if (sum < 1000000000) {
           packedDigits[index] = sum;
