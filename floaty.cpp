@@ -270,6 +270,7 @@ int main(int argc, char** args) {
   std::cout << bernd::Base1GNumber(1.234567888f) << std::endl;
   std::cout << bernd::Base1GNumber(1.45).round(1) << std::endl;
   std::cout << bernd::Base1GNumber(1.45).format() << std::endl;
+  std::cout << bernd::Base1GNumber(0.4567890).format() << std::endl;
 
   return 0;
 }

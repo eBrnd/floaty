@@ -168,12 +168,32 @@ class Base1GNumber {
 
       round(decimals); // TODO this changes our number (that's why format can't be const). That's probably not good, but otherwise we'd need a copy.
 
+      bool in_leading_zeros = true;
+      bool before_decimal_point = true;
+      unsigned digits_count = 0;
       string d(9, '0');
       for (vector<digit_t>::const_iterator digit_it = packedDigits.begin();
           digit_it != packedDigits.end(); ++digit_it) {
         fillDigitPackString(d, *digit_it);
-        res += d;
-        res += " ";
+
+        for (string::const_iterator dd_it = d.begin(); dd_it != d.end(); ++dd_it) {
+          // in here, we actually iterate over all decimal digits of our number.
+
+          if (before_decimal_point && (digits_count++ >= (INITIAL_POSITION + 1) * 9)) {
+            before_decimal_point = false;
+            if (in_leading_zeros) {
+              res += "0.";
+              in_leading_zeros = false;
+            } else {
+              res += ".";
+            }
+          }
+
+          if (!(in_leading_zeros && *dd_it == '0')) { // trim leading zeros
+            in_leading_zeros = false;
+            res += *dd_it;
+          }
+        }
       }
 
       return res;
