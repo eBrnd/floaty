@@ -1,6 +1,7 @@
 #ifndef BASE1GFLOAT_HPP_c9b25b3fcb
 #define BASE1GFLOAT_HPP_c9b25b3fcb
 
+#include <cmath>
 #include <stdexcept>
 #include <vector>
 
@@ -159,7 +160,7 @@ class Base1GNumber {
     }
 
     string format(int decimals = 6, char convspec = 'g') {
-      if (convspec != 'g' && convspec != 'e')
+      if (convspec != 'g' && convspec != 'f')
         throw runtime_error("Invalid conversion specifier");
 
       if (nan) return "nan";
@@ -200,7 +201,7 @@ class Base1GNumber {
             res += *dd_it;
           }
 
-          if (convspec == 'g') {
+          if (convspec == 'g') { // TODO in printf, g automatically selects from e and f whichever is shorter, additinally trimming trailing zeros
             // trim any trailing zeros
             // check if current digitPack is zero
             only_zeros_left = true;
@@ -215,7 +216,7 @@ class Base1GNumber {
               if (*check_it != 0)
                 only_zeros_left = false;
             }
-          } else { // if (convspec == 'e')
+          } else { // if (convspec == 'f')
             // trim only digits that were rounded off
             if (digits_count >= ((INITIAL_POSITION + 1) * 9) + decimals)
               only_zeros_left = true;
