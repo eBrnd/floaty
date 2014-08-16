@@ -168,10 +168,12 @@ class Base1GNumber {
 
       round(decimals); // TODO this changes our number (that's why format can't be const). That's probably not good, but otherwise we'd need a copy.
 
-      bool in_leading_zeros = true;
-      bool before_decimal_point = true;
-      unsigned digits_count = 0;
-      string d(9, '0');
+      bool in_leading_zeros = true; // Flag to store whether we're processing leading zeros. Will be set to false once we reach 'actual' digits. Neede for suppressing leading zeros.
+      bool before_decimal_point = true; // Are we processing digits before or after the decimal point. Needed for setting the '0.' prefix on numbers n : -1 < n < 1.
+      unsigned digits_count = 0; // How many digits are processed. Needed foer setting the decimal point.
+      string d(9, '0'); // Buffer for converting a digitPack to 9 decimal digits.
+      bool only_zeros_left = false; // Flag will be set once we have only trailing zeros left to process. Needed to suppress trailing zeros.
+
       for (vector<digit_t>::const_iterator digit_it = packedDigits.begin();
           digit_it != packedDigits.end(); ++digit_it) {
         fillDigitPackString(d, *digit_it);
@@ -193,49 +195,28 @@ class Base1GNumber {
             in_leading_zeros = false;
             res += *dd_it;
           }
+
+          // trim trailing zeros
+          // check if current digitPack is zero
+          only_zeros_left = true;
+          for (string::const_iterator check_it = dd_it + 1;
+              check_it != d.end() && only_zeros_left; ++check_it) {
+            if (*check_it != '0')
+              only_zeros_left = false;
+          }
+          // check if all remaining digit packs are zero
+          for (vector<digit_t>::const_iterator check_it = digit_it + 1;
+              check_it != packedDigits.end() && only_zeros_left; ++check_it) {
+            if (*check_it != 0)
+              only_zeros_left = false;
+          }
+
+          if (only_zeros_left) break;
         }
+        if (only_zeros_left) break;
       }
 
       return res;
-
-      /*
-      vector<char>::const_iterator d = digits.begin();
-
-      // trim leading 0's
-      while (d != digits.end() && *d == 0) d++;
-
-      if (d == digits.end())
-        return "0." + string(decimals, '0');
-
-      int distance_from_decimal_point = d - digits.begin() - INITIAL_POSITION - 1;
-
-      bool before_decimal_point = true;
-      if (distance_from_decimal_point >= 0) { // print some leading zeros
-        before_decimal_point = false;
-        res += "0.";
-        while (distance_from_decimal_point) {
-          res.push_back('0');
-          distance_from_decimal_point--;
-          if (!decimals--) return res;
-        }
-      }
-
-      // now the funny part...
-      while (d != digits.end() && decimals) {
-        if (!before_decimal_point)
-          decimals--;
-
-        res.push_back(*d + '0');
-        if (d - digits.begin() == INITIAL_POSITION) {
-          res.push_back('.');
-          before_decimal_point = false;
-        }
-        d++;
-
-      }
-
-      return res;
-      */
     }
 
     friend std::ostream& operator<<(std::ostream& str, const Base1GNumber& n) {
@@ -248,7 +229,6 @@ class Base1GNumber {
         str << "inf";
         return str;
       }
-      str << std::endl;
       for (vector<digit_t>::const_iterator it = n.packedDigits.begin(); it != n.packedDigits.end();
           ++it) {
         str << std::setfill('0') << std::setw(9) << *it << " ";
