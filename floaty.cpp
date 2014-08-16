@@ -272,5 +272,9 @@ int main(int argc, char** args) {
   std::cout << bernd::Base1GNumber(1.45).format() << std::endl;
   std::cout << bernd::Base1GNumber(0.4567890).format() << std::endl;
 
+  std::cout << bernd::Base1GNumber(1.45).round(1) << std::endl;
+  std::cout << bernd::Base1GNumber(1.45).format(6,'e') << std::endl;
+  std::cout << bernd::Base1GNumber(0.4567890).format(6, 'e') << std::endl;
+
   return 0;
 }

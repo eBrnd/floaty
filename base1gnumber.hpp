@@ -158,7 +158,10 @@ class Base1GNumber {
       }
     }
 
-    string format(int decimals = 6) {
+    string format(int decimals = 6, char convspec = 'g') {
+      if (convspec != 'g' && convspec != 'e')
+        throw runtime_error("Invalid conversion specifier");
+
       if (nan) return "nan";
       string res(negative ? "-" : "");
       if (inf) {
@@ -181,7 +184,8 @@ class Base1GNumber {
         for (string::const_iterator dd_it = d.begin(); dd_it != d.end(); ++dd_it) {
           // in here, we actually iterate over all decimal digits of our number.
 
-          if (before_decimal_point && (digits_count++ >= (INITIAL_POSITION + 1) * 9)) {
+          digits_count++;
+          if (before_decimal_point && (digits_count > (INITIAL_POSITION + 1) * 9)) {
             before_decimal_point = false;
             if (in_leading_zeros) {
               res += "0.";
@@ -196,19 +200,25 @@ class Base1GNumber {
             res += *dd_it;
           }
 
-          // trim trailing zeros
-          // check if current digitPack is zero
-          only_zeros_left = true;
-          for (string::const_iterator check_it = dd_it + 1;
-              check_it != d.end() && only_zeros_left; ++check_it) {
-            if (*check_it != '0')
-              only_zeros_left = false;
-          }
-          // check if all remaining digit packs are zero
-          for (vector<digit_t>::const_iterator check_it = digit_it + 1;
-              check_it != packedDigits.end() && only_zeros_left; ++check_it) {
-            if (*check_it != 0)
-              only_zeros_left = false;
+          if (convspec == 'g') {
+            // trim any trailing zeros
+            // check if current digitPack is zero
+            only_zeros_left = true;
+            for (string::const_iterator check_it = dd_it + 1;
+                check_it != d.end() && only_zeros_left; ++check_it) {
+              if (*check_it != '0')
+                only_zeros_left = false;
+            }
+            // check if all remaining digit packs are zero
+            for (vector<digit_t>::const_iterator check_it = digit_it + 1;
+                check_it != packedDigits.end() && only_zeros_left; ++check_it) {
+              if (*check_it != 0)
+                only_zeros_left = false;
+            }
+          } else { // if (convspec == 'e')
+            // trim only digits that were rounded off
+            if (digits_count >= ((INITIAL_POSITION + 1) * 9) + decimals)
+              only_zeros_left = true;
           }
 
           if (only_zeros_left) break;
