@@ -89,6 +89,27 @@ class Base1GNumber {
       return packedDigit % 10;
     }
 
+    // Determine whether there's a non-zero digit anywhere from the given index to the right
+    bool someDigitNonZero(unsigned index) {
+      // current packedDigit: Have to check individually
+      unsigned subIndex = 8 - index % 9;
+      while (subIndex--) {
+        digit_t digit = getDigit(index++);
+        if (digit != 0)
+          return true;
+      }
+
+      // all other packedDigits: Check whole packed digit at once
+      index /= 9;
+      while (index++ < LENGTH) {
+        digit_t packedDigit = packedDigits[index];
+        if (packedDigit != 0)
+          return true;
+      }
+
+      return false;
+    }
+
     Base1GNumber& round(int decimals) {
       decimals += (INITIAL_POSITION + 1) * 9 - 1;
       unsigned subIndex = 8 - decimals % 9;
@@ -97,7 +118,8 @@ class Base1GNumber {
       digit_t& packedDigit = packedDigits[index];
       digit_t carry = 0;
 
-      if (getDigit(decimals + 1) >= 5) {
+      if (getDigit(decimals + 1) > 5
+          || someDigitNonZero(decimals + 2)) {
         for (unsigned i = 0; i < subIndex; i++)
           packedDigit /= 10;
 
