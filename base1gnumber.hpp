@@ -11,7 +11,8 @@ using std::runtime_error;
 using std::string;
 using std::vector;
 
-class Base1GNumber {
+class Base1GNumber
+{
   private:
     typedef uint32_t digit_t;
     vector<digit_t> packedDigits;
@@ -27,20 +28,23 @@ class Base1GNumber {
     static const unsigned LENGTH = 12; // TODO make appropriate
 
     Base1GNumber()
-        : packedDigits(LENGTH), negative(false), inf(false), nan(false) {
+        : packedDigits(LENGTH), negative(false), inf(false), nan(false)
+    {
       packedDigits[INITIAL_POSITION] = 1;
     }
 
     Base1GNumber(vector<digit_t> p, bool negative = false, bool inf = false, bool nan = false)
-        : negative(negative), inf(inf), nan(nan) {
-      if (p.size() == LENGTH) {
-        packedDigits = p;
-      } else {
+        : negative(negative), inf(inf), nan(nan)
+    {
+      if (p.size() != LENGTH)
         throw runtime_error("Vector must have correct length");
-      }
+
+      packedDigits = p;
     }
 
-    Base1GNumber(float f) : packedDigits(LENGTH), negative(f < 0.f), inf(isinf(f)), nan(isnan(f)) {
+    Base1GNumber(float f)
+        : packedDigits(LENGTH), negative(f < 0.f), inf(isinf(f)), nan(isnan(f))
+    {
       if (inf || nan) return;
 
       unsigned i = INITIAL_POSITION;
@@ -64,7 +68,8 @@ class Base1GNumber {
           div2();
     }
 
-    Base1GNumber& div2() {
+    Base1GNumber& div2()
+    {
       bool remainder = false;
       for (unsigned index = 0; index < LENGTH; index++) {
         digit_t result = remainder ? (BASE / 2) : 0;
@@ -77,7 +82,8 @@ class Base1GNumber {
       return *this;
     }
 
-    digit_t getDigit(unsigned index) const {
+    digit_t getDigit(unsigned index) const
+    {
       // split in packedDigit index and digit index
       unsigned subIndex = 8 - index % 9;
       index /= 9;
@@ -90,7 +96,8 @@ class Base1GNumber {
     }
 
     // Determine whether there's a non-zero digit anywhere from the given index to the right
-    bool someDigitNonZero(unsigned index) {
+    bool someDigitNonZero(unsigned index)
+    {
       // current packedDigit: Have to check individually
       unsigned subIndex = 8 - index % 9;
       while (subIndex--) {
@@ -110,7 +117,8 @@ class Base1GNumber {
       return false;
     }
 
-    Base1GNumber& round(int decimals) {
+    Base1GNumber& round(int decimals)
+    {
       decimals += (INITIAL_POSITION + 1) * 9 - 1;
       unsigned subIndex = 8 - decimals % 9;
       int index = decimals / 9;
@@ -118,8 +126,11 @@ class Base1GNumber {
       digit_t& packedDigit = packedDigits[index];
       digit_t carry = 0;
 
-      if (getDigit(decimals + 1) > 5
-          || someDigitNonZero(decimals + 2)) {
+      digit_t firstRoundedOffDigit = getDigit(decimals + 1);
+      bool roundUp = firstRoundedOffDigit > 5
+          || (firstRoundedOffDigit == 5 && someDigitNonZero(decimals + 2));
+
+      if (roundUp) {
         for (unsigned i = 0; i < subIndex; i++)
           packedDigit /= 10;
 
@@ -156,7 +167,8 @@ class Base1GNumber {
       return *this;
     }
 
-    Base1GNumber& operator+=(const Base1GNumber& o) {
+    Base1GNumber& operator+=(const Base1GNumber& o)
+    {
       digit_t carry = 0;
       for (int index = LENGTH - 1; index >= 0; index--) {
         digit_t sum = packedDigits[index] + o.packedDigits[index] + carry;
@@ -172,7 +184,8 @@ class Base1GNumber {
       return *this;
     }
 
-    void fillDigitPackString(string& s, digit_t d) {
+    void fillDigitPackString(string& s, digit_t d)
+    {
       s.replace(0, 9, 9, '0');
       int index = 9;
       while (d && index) {
@@ -181,7 +194,8 @@ class Base1GNumber {
       }
     }
 
-    string format(int decimals = 6, char convspec = 'g') {
+    string format(int decimals = 6, char convspec = 'g')
+    {
       if (convspec != 'g' && convspec != 'f')
         throw runtime_error("Invalid conversion specifier");
 
@@ -200,11 +214,10 @@ class Base1GNumber {
       string d(9, '0'); // Buffer for converting a digitPack to 9 decimal digits.
       bool only_zeros_left = false; // Flag will be set once we have only trailing zeros left to process. Needed to suppress trailing zeros.
 
-      for (vector<digit_t>::const_iterator digit_it = packedDigits.begin();
-          digit_it != packedDigits.end(); ++digit_it) {
+      for (auto digit_it = packedDigits.begin(); digit_it != packedDigits.end(); ++digit_it) {
         fillDigitPackString(d, *digit_it);
 
-        for (string::const_iterator dd_it = d.begin(); dd_it != d.end(); ++dd_it) {
+        for (auto dd_it = d.begin(); dd_it != d.end(); ++dd_it) {
           // in here, we actually iterate over all decimal digits of our number.
 
           digits_count++;
@@ -227,13 +240,13 @@ class Base1GNumber {
             // trim any trailing zeros
             // check if current digitPack is zero
             only_zeros_left = true;
-            for (string::const_iterator check_it = dd_it + 1;
+            for (auto check_it = dd_it + 1;
                 check_it != d.end() && only_zeros_left; ++check_it) {
               if (*check_it != '0')
                 only_zeros_left = false;
             }
             // check if all remaining digit packs are zero
-            for (vector<digit_t>::const_iterator check_it = digit_it + 1;
+            for (auto check_it = digit_it + 1;
                 check_it != packedDigits.end() && only_zeros_left; ++check_it) {
               if (*check_it != 0)
                 only_zeros_left = false;
@@ -252,7 +265,8 @@ class Base1GNumber {
       return res;
     }
 
-    friend std::ostream& operator<<(std::ostream& str, const Base1GNumber& n) {
+    friend std::ostream& operator<<(std::ostream& str, const Base1GNumber& n)
+    {
       if (n.nan) {
         str << "nan";
         return str;

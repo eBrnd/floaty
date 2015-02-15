@@ -4,7 +4,8 @@
 
 #include "base1gnumber.hpp"
 
-int main(int argc, char** args) {
+int main(int argc, char** args)
+{
   std::vector<uint32_t> digits(bernd::Base1GNumber::LENGTH);
   digits[6] = 23456;
   digits[7] = 123456789;
