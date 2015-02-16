@@ -11,7 +11,7 @@ struct Length {};
 
 template<>
 struct Length<float> {
-  static constexpr unsigned l = 60;
+  static constexpr unsigned l = 80;
   static constexpr unsigned e0 = 5;
 };
 
@@ -23,6 +23,7 @@ class NewFloatRepresentation {
 
   private:
     limb_t limbs[nLimbs];
+    int exponent;
 
     bool negative;
     bool inf;
@@ -44,37 +45,78 @@ class NewFloatRepresentation {
       if (inf || nan) return;
 
       unsigned limbIndex = Length<F>::e0;
-      int exp;
 
-      float s = std::fabs(frexp(f, &exp));
+      float s = std::fabs(frexp(f, &exponent));
 
-      s *= 1<<29;
+      s *= 1<<29; // pre-scale with 2^29 to extract as many bits as possible in the first iteration
+      exponent -= 29; // store prescaling in exponent
       limbs[limbIndex] = static_cast<limb_t>(s);
 
       while (s) {
         s -= limbs[limbIndex];
         s *= 1<<29;
-        shift29();
+        mult2(29);
 
         limbIndex++;
         limbs[limbIndex] = static_cast<limb_t>(s);
       }
 
+      // scale to exponent=0
+      if (exponent < 0)
+        div2(-exponent);
+      else if (exponent > 0)
+        mult2(exponent);
+
     }
 
-    void shift29() {
+    void mult2(unsigned expn) {
+      exponent -= expn;
 
-      for (unsigned i = 0; i < nLimbs; i++) {
-        uint64_t limb = limbs[i];
-        limb *= 1<<29;
+      while (expn) {
+        unsigned nextponent = 0;
 
-        limbs[i] = limb % BASE;
+        if (expn > 29) { // do multiple iterations if exponent is too large
+          nextponent = expn - 29;
+          expn = 29;
+        }
 
-        if (i != 0)
-          limbs[i-1] += limb / BASE;
+        for (unsigned i = 0; i < nLimbs; i++) {
+          uint64_t limb = limbs[i];
+          limb *= 1<<expn;
 
-        if (i == 0 && limb / BASE)
-          throw std::runtime_error("Overflow.");
+          limbs[i] = limb % BASE;
+
+          if (i != 0)
+            limbs[i-1] += limb / BASE;
+
+          if (i == 0 && limb / BASE)
+            throw std::runtime_error("Overflow.");
+        }
+
+        expn = nextponent;
+      }
+    }
+
+    void div2(unsigned expn) {
+      exponent += expn;
+
+      while (expn) {
+        unsigned nextponent = 0;
+
+        if (expn > 29) { // do multiple iterations if exponent is too large
+          nextponent = expn - 29;
+          expn = 29;
+        }
+
+        limb_t remainder = 0;
+        for (unsigned i = 0; i < nLimbs; i++) {
+          uint64_t limb = limbs[i];
+          limb += (static_cast<uint64_t>(remainder) * BASE);
+          limbs[i] = limb / (1 << expn);
+          remainder = limb % (1 << expn);
+        }
+
+        expn = nextponent;
       }
     }
 

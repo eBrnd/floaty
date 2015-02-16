@@ -11,5 +11,9 @@ int main(int argc, char** args)
 
   std::cout << n << std::endl;
 
+  float g = 1.5e33;
+  bernd::NewFloatRepresentation<float> m(g);
+  std::cout << m << std::endl;
+
   return 0;
 }
