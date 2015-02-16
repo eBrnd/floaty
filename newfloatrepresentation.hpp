@@ -86,7 +86,7 @@ class NewFloatRepresentation {
             limbs[i-1] += limb / BASE; // carry for next limb
 
             // bubble carry through
-            for (unsigned j = i - 1; j > 1; j--) {
+            for (unsigned j = i - 1; j >= 1; j--) {
               limbs[j-1] += limbs[j] / BASE;
               limbs[j] %= BASE;
             }
