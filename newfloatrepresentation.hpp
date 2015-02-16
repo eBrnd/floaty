@@ -38,9 +38,6 @@ class NewFloatRepresentation {
     NewFloatRepresentation(F f)
         : limbs{}, negative(f < 0.f), fpclass(std::fpclassify(f))
     {
-      for (unsigned i = 0; i < nLimbs; i++)
-        limbs[i] = 0;
-
       if (fpclass == FP_INFINITE || fpclass == FP_NAN) return;
 
       unsigned limbIndex = Length<F>::e0;
