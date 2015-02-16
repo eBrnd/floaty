@@ -26,8 +26,7 @@ class NewFloatRepresentation {
     int exponent;
 
     bool negative;
-    bool inf;
-    bool nan;
+    int fpclass;
 
     unsigned sticky;
 
@@ -37,12 +36,12 @@ class NewFloatRepresentation {
     // TODO default constructor initialize to zero?
 
     NewFloatRepresentation(F f)
-        : negative(f < 0.f), inf(isinf(f)), nan(isnan(f))
+        : limbs{}, negative(f < 0.f), fpclass(std::fpclassify(f))
     {
       for (unsigned i = 0; i < nLimbs; i++)
         limbs[i] = 0;
 
-      if (inf || nan) return;
+      if (fpclass == FP_INFINITE || fpclass == FP_NAN) return;
 
       unsigned limbIndex = Length<F>::e0;
 
@@ -123,12 +122,12 @@ class NewFloatRepresentation {
     const limb_t* const getLimbs() const { return &limbs[0]; }
 
     friend std::ostream& operator<<(std::ostream& str, const NewFloatRepresentation<F>& n) {
-      if (n.nan) {
+      if (n.fpclass == FP_NAN) {
         str << "nan";
         return str;
       }
       if (n.negative) str << "-";
-      if (n.inf) {
+      if (n.fpclass == FP_INFINITE) {
         str << "inf";
         return str;
       }
