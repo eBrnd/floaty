@@ -11,9 +11,13 @@ int main(int argc, char** args)
 
   std::cout << n << std::endl;
 
-  float g = 1.5e33;
+  float g = 6.135e33;
   bernd::NewFloatRepresentation<float> m(g);
   std::cout << m << std::endl;
+
+  float h = 1.3f;
+  bernd::NewFloatRepresentation<float> o(h);
+  std::cout << o << std::endl;
 
   return 0;
 }

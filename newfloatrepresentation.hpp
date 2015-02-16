@@ -82,8 +82,18 @@ class NewFloatRepresentation {
 
           limbs[i] = limb % BASE;
 
-          if (i != 0)
-            limbs[i-1] += limb / BASE;
+          if (i != 0) {
+            limbs[i-1] += limb / BASE; // carry for next limb
+
+            // bubble carry through
+            for (unsigned j = i - 1; j > 1; j--) {
+              limbs[j-1] += limbs[j] / BASE;
+              limbs[j] %= BASE;
+            }
+
+            if (limbs[0] > BASE)
+              throw std::runtime_error("Overflow.");
+          }
 
           if (i == 0 && limb / BASE)
             throw std::runtime_error("Overflow.");
